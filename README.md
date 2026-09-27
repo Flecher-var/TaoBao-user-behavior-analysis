@@ -100,6 +100,9 @@
 RFM 分析显示，不同用户群体在活跃度和购买行为方面存在明显差异，其中约 **34% 的重要价值用户**贡献了较高的用户活跃度。
 
 ---
+<img width="877" height="551" alt="3" src="https://github.com/user-attachments/assets/cfa22d3f-8e9c-4f1f-ab47-069504b344b4" />
+<img width="1128" height="794" alt="2" src="https://github.com/user-attachments/assets/f7b46906-12b2-442d-a7a4-0abe2cff0fdc" />
+
 
 
 
