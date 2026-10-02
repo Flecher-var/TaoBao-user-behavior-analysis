@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# IDE
+.idea/
+
+# 原始数据 3.6 GB，不进版本库（下载方式见 README 第 2 节）
+UserBehavior.csv
+data/
+
+# 每台机器不同，不强制
+*.bak
