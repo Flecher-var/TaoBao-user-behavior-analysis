@@ -1,18 +1,18 @@
 """
-用户级转化漏斗：SQL 算，本脚本只读结果画图。
+用户级转化漏斗：由 SQL 计算，本脚本仅读取结果并绘图。
 
-数据来源（run_sql.py 跑 sql/05_funnel.sql 时导出的两份 CSV）：
+数据来源（run_sql.py 执行 sql/05_funnel.sql 时导出的两份 CSV）：
     results/05_funnel__01.csv   漏斗总览（一行）
     results/05_funnel__02.csv   漏斗分层明细
-所以执行顺序是：
-    python run_sql.py      然后    python funnel.py
+执行顺序：
+    python run_sql.py      随后执行    python funnel.py
 
-口径（见 sql/05_funnel.sql）：
-  * 所有比例都按「去重用户数」算，不是行为事件数之比。
-  * 收藏(fav) 和加购(cart) 是并列分支，不是先后步骤，所以漏斗是
-    「浏览 -> 加购或收藏 -> 购买」三段，不是四段链。
-以前那种直接 value_counts() 得到「33 次点击换 1 次购买」的算法是错的——
-那是事件比，同一个用户点 30 次会算 30 次。
+口径（详见 sql/05_funnel.sql）：
+  * 所有比例均按「去重用户数」计算，而非行为事件数之比。
+  * 收藏(fav) 与 加购(cart) 为并列分支，并非先后步骤，因此漏斗为
+    「浏览 -> 加购或收藏 -> 购买」三段，而非四段链。
+原实现直接 value_counts() 得到「33 次点击换 1 次购买」的算法是错误的——
+那是事件比，同一用户点击 30 次会被计为 30 次。
 
 输出：images/funnel.png
 """

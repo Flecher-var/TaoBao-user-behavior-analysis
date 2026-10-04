@@ -1,20 +1,20 @@
 """
 用户价值分层（R + F）。
 
-数据来源：results/07_rfm__01.csv（run_sql.py 跑 sql/07_rfm.sql 导出的）。
-执行顺序：python run_sql.py  然后  python rfm.py
+数据来源：results/07_rfm__01.csv（由 run_sql.py 执行 sql/07_rfm.sql 导出）。
+执行顺序：python run_sql.py  随后  python rfm.py
 
-为什么不是 RFM：数据集没有商品单价和订单金额，M（Monetary）算不出来。
-原项目「文件名叫 RFM、函数叫 RF_analysis、README 写 RFM」三处不一致，
-这里统一改成 RF，并在 README 里说明原因——主动承认限制比含糊带过好。
+为何不是 RFM：数据集无商品单价与订单金额，M（Monetary）无法计算。
+原项目存在三处不一致：「文件名为 RFM、函数名为 RF_analysis、README 写作 RFM」，
+此处统一为 RF，并在 README 中说明原因——主动说明限制优于含糊带过。
 
-分档口径见 sql/07_rfm.sql：
+分档口径详见 sql/07_rfm.sql：
     R = 期末日期 - 该用户最近一次购买日期（越小越好）
     F = 购买次数（越大越好）
-    各自 NTILE(4) 分 4 档，>=3 视为高，交叉成 2x2 四象限。
+    各自以 NTILE(4) 分为 4 档，>=3 视为高，交叉构成 2x2 四象限。
 
-注意：R 与 F 高度相关（买得多的人通常最近也买过），而 NTILE 强制分成两高两低，
-所以两个混合象限人数会完全相等，这是分档方式的产物，不要过度解读。
+注意：R 与 F 高度相关（购买次数多的用户通常最近也有购买），而 NTILE 强制分为两高两低，
+因此两个混合象限人数会完全相等，这是分档方式的产物，不应过度解读。
 
 输出：images/rfm_segments.png
 """

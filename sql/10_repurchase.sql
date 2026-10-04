@@ -1,16 +1,16 @@
 -- ============================================================
 -- 10 复购 / 加购收藏比 / 付费用户偏好
 --
--- 这几条和第一版能对上：复购率、加购/收藏比（2.05，和第一版完全一致）、
--- 购买量 Top 类目，第一版 purchase_analysis.py 都算过。
--- 这次补的是原来 README 提过、但代码里没有实现的两项：
+-- 以下几项与第一版一致：复购率、加购/收藏比（2.05，与第一版完全相同）、
+-- 购买量 Top 类目，第一版 purchase_analysis.py 均已计算。
+-- 本次补充的是 README 中提到但代码中未实现的两项：
 -- 复购次数分布、高价值用户的下单时段。
 -- ============================================================
 
 -- ① 复购率
 --    口径：购买次数 > 1 的用户 / 有过购买行为的用户
---    注意分母是「买过的人」，不是全站用户，所以这个数字天然偏高，
---    写进 README 时必须带口径说明。
+--    注意分母为「买过的人」而非全站用户，因此该数值天然偏高，
+--    写入 README 时必须附带口径说明。
 WITH buy AS (
   SELECT user_id, COUNT(*) AS buy_cnt
   FROM user_behavior
@@ -23,7 +23,7 @@ SELECT COUNT(*)                                      AS 购买用户数,
 FROM buy;
 
 -- ② 有过购买行为的用户里，加购 与 收藏 的频次比
---    （README 的 2.05 就是这个口径，用来论证「加购是比收藏更强的购买信号」）
+--    （README 中的 2.05 即为该口径，用于论证「加购是比收藏更强的购买信号」）
 WITH pay_user AS (
   SELECT DISTINCT user_id
   FROM user_behavior
@@ -55,7 +55,7 @@ FROM buy
 GROUP BY 购买频次
 ORDER BY 购买频次;
 
--- ④ 购买量最高的 10 个类目（原 purchase_analysis.py 的「品类偏好」）
+-- ④ 购买量最高的 10 个类目（对应原 purchase_analysis.py 的「品类偏好」）
 SELECT category_id             AS 类目ID,
        COUNT(*)                AS 购买次数,
        COUNT(DISTINCT user_id) AS 购买用户数
@@ -66,7 +66,7 @@ ORDER BY 购买次数 DESC
 LIMIT 10;
 
 -- ⑤ 高价值用户（购买次数最多的那批人）的下单时段
---    用来验证「大促 / 晚间下单更集中」这类结论是不是真的成立
+--    用于验证「大促 / 晚间下单更集中」这类结论是否成立
 WITH buy AS (
   SELECT user_id, COUNT(*) AS buy_cnt
   FROM user_behavior

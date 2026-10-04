@@ -11,7 +11,7 @@ SELECT COUNT(*)                  AS 行为总数,
        MAX(dt)                   AS 最晚时间
 FROM user_behavior;
 
--- ② 行为类型分布（pv 应占绝大多数，buy 最少，这是常识性检查）
+-- ② 行为类型分布（pv 应占绝大多数，buy 最少，属常识性检查）
 SELECT behavior_type AS 行为类型,
        COUNT(*)      AS 次数,
        ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 2) AS 占比
@@ -19,7 +19,7 @@ FROM user_behavior
 GROUP BY behavior_type
 ORDER BY 次数 DESC;
 
--- ③ 每日行为量与活跃用户（找异常日期 / 大促波动）
+-- ③ 每日行为量与活跃用户（用于发现异常日期 / 大促波动）
 SELECT DATE(dt)               AS 日期,
        COUNT(*)               AS 行为数,
        COUNT(DISTINCT user_id) AS 活跃用户
@@ -46,7 +46,7 @@ GROUP BY user_id
 ORDER BY 行为数 DESC
 LIMIT 20;
 
--- ⑥ 空值检查（COUNT(*) 减 COUNT(列) 就是该列的空值数）
+-- ⑥ 空值检查（COUNT(*) 减 COUNT(列) 即该列的空值数）
 SELECT COUNT(*) - COUNT(user_id)       AS user_id空值,
        COUNT(*) - COUNT(item_id)       AS item_id空值,
        COUNT(*) - COUNT(category_id)   AS category_id空值,
@@ -54,7 +54,7 @@ SELECT COUNT(*) - COUNT(user_id)       AS user_id空值,
        COUNT(*) - COUNT(dt)            AS dt空值
 FROM user_behavior;
 
--- ⑦ 越界时间检查（数据应该只覆盖 2017-11-25 ~ 2017-12-03）
+-- ⑦ 越界时间检查（数据应仅覆盖 2017-11-25 ~ 2017-12-03）
 SELECT COUNT(*) AS 越界行数
 FROM user_behavior
 WHERE dt < '2017-11-25 00:00:00'

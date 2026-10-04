@@ -1,21 +1,21 @@
 """
-把 sql/ 下的脚本按顺序跑一遍，每个 SELECT 的结果自动存到 results/。
+按顺序执行 sql/ 下的脚本，并将每个 SELECT 的结果自动保存到 results/。
 
-为什么需要它：
-  1 亿行的库不适合在 DBeaver 里一条条贴——跑完还不知道结果存哪了。
-  这个脚本让「SQL 化」有个正式的入口：一条命令跑完全流程，结果落在 results/，
-  后面画图和写 README 都从 results/ 取数，可复现、可对账。
+用途：
+  1 亿行的数据库不适合在 DBeaver 中逐条粘贴执行——且执行后结果存放位置不明确。
+  本脚本为「SQL 化」提供正式入口：一条命令跑完全流程，结果落在 results/，
+  后续绘图与编写 README 均从 results/ 取数，可复现、可对账。
 
 用法（在项目根目录）：
-    python run_sql.py --all         全流程：建表 -> 灌数据 -> 建索引 -> 核对 -> 分析
-    python run_sql.py               跳过 01/02/03，只跑核对和分析（数据已在库里时用这个）
-    python run_sql.py --load        只跑 01/02/03（建表 + 灌数据 + 建索引）
-    python run_sql.py --only 05 06  只跑文件名以 05 / 06 开头的脚本
-    python run_sql.py --dry-run     只列将要执行的文件，不连数据库
+    python run_sql.py --all         全流程：建表 -> 导入数据 -> 建索引 -> 核对 -> 分析
+    python run_sql.py               跳过 01/02/03，仅执行核对与分析（数据已在库中时使用）
+    python run_sql.py --load        仅执行 01/02/03（建表 + 导入数据 + 建索引）
+    python run_sql.py --only 05 06  仅执行文件名以 05 / 06 开头的脚本
+    python run_sql.py --dry-run     仅列出将执行的文件，不连接数据库
 
-结果文件名规则：results/<脚本名>__<第几条语句>.csv
-    例：results/05_funnel__2.csv  = 05_funnel.sql 里的第 2 条 SELECT
-导出用 utf-8-sig，Excel 双击打开不乱码。
+结果文件命名规则：results/<脚本名>__<第几条语句>.csv
+    例：results/05_funnel__2.csv  = 05_funnel.sql 中的第 2 条 SELECT
+导出使用 utf-8-sig，Excel 双击打开不会乱码。
 """
 
 from __future__ import annotations
@@ -31,14 +31,14 @@ import pymysql
 
 from preprocess import DB_CONFIG, RESULTS_DIR, SQL_DIR
 
-# 默认跳过的建表/灌数据脚本（数据已经在库里时不该重跑）
+# 默认跳过的建表/导入数据脚本（数据已在库中时不应重复执行）
 SETUP_PREFIXES = ("01", "02", "03")
 
 
 # ── SQL 切分 ───────────────────────────────────────────────
 def split_statements(sql_text: str) -> list[str]:
-    """把脚本切成一条条语句。足够应付本项目：整行注释会被去掉，
-    分号只在引号外才算分隔符。"""
+    """将脚本切分为一条条语句。足以应对本项目：整行注释会被去除，
+    分号仅在引号外才作为分隔符。"""
     cleaned_lines = []
     for line in sql_text.splitlines():
         cleaned_lines.append("" if line.strip().startswith("--") else line)
@@ -84,10 +84,10 @@ def first_keyword(stmt: str) -> str:
     return stmt.lstrip().split(None, 1)[0].upper() if stmt.strip() else ""
 
 
-# ── 长语句的“还在跑”提示 ───────────────────────────────────
+# ── 长语句执行进度提示 ─────────────────────────────────────
 class Heartbeat(threading.Thread):
-    """LOAD DATA / 建索引要跑十几分钟，期间没有任何输出，
-    这个线程每 30 秒打一行，免得你以为卡死了。"""
+    """LOAD DATA / 建索引需要运行十几分钟，期间没有任何输出；
+    本线程每 30 秒输出一行，以避免误认为进程无响应。"""
 
     def __init__(self, label: str, every: int = 30):
         super().__init__(daemon=True)
@@ -137,7 +137,7 @@ def export_csv(path: Path, columns, rows) -> None:
         w.writerows(rows)
 
 
-# ── 挑选要跑的文件 ─────────────────────────────────────────
+# ── 选择待执行的文件 ───────────────────────────────────────
 def pick_files(all_files: bool, load_only: bool, only: list[str]) -> list[Path]:
     files = sorted(SQL_DIR.glob("*.sql"))
     if only:
@@ -157,7 +157,7 @@ def connect():
         password=DB_CONFIG["password"],
         database=DB_CONFIG["database"],
         charset="utf8mb4",
-        local_infile=True,      # LOAD DATA LOCAL INFILE 需要
+        local_infile=True,      # LOAD DATA LOCAL INFILE 所需
         autocommit=True,
     )
 

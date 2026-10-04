@@ -1,16 +1,16 @@
 """
 数据处理层（SQL 化之后）。
 
-原来的 preprocess.py 用 pandas 读 3.6 GB 的 CSV、分块清洗、再 concat 成一个大
-DataFrame：1 亿行全量加载要十几 GB 内存，这也是这个项目必须改成 SQL 的原因。
-现在这一层只剩两件事——连数据库、把结果取成 DataFrame。
-清洗、聚合、漏斗、留存、RFM 全部在 sql/ 里用 SQL 完成。
+原 preprocess.py 使用 pandas 读取 3.6 GB 的 CSV、分块清洗、再 concat 为一个大
+DataFrame：1 亿行全量加载需要十几 GB 内存，这也是本项目必须改为 SQL 的原因。
+当前该层仅保留两项职责——连接数据库、将结果取为 DataFrame。
+清洗、聚合、漏斗、留存、RFM 全部在 sql/ 中以 SQL 完成。
 
 其它脚本里的 `from preprocess import *` 仍然有效：
-    build_engine()        建数据库连接
-    query(sql)            跑一条查询，返回 DataFrame
-    read_sql_file(path)   读 sql/ 目录下的脚本原文（指标口径的唯一定义处）
-    ensure_dirs()         保证 results/ 和 images/ 存在
+    build_engine()        创建数据库连接
+    query(sql)            执行一条查询，返回 DataFrame
+    read_sql_file(path)   读取 sql/ 目录下的脚本原文（指标口径的唯一定义处）
+    ensure_dirs()         确保 results/ 和 images/ 存在
 """
 
 from __future__ import annotations
@@ -22,12 +22,12 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
-# ── 改这里 ────────────────────────────────────────────────
+# ── 配置区 ────────────────────────────────────────────────
 DB_CONFIG = {
     "host": "127.0.0.1",
     "port": 3306,
     "user": "root",
-    "password": "123456",       # <- 改成你的 MySQL 密码
+    "password": "123456",       # <- 请修改为实际 MySQL 密码
     "database": "taobao",
 }
 
@@ -38,7 +38,7 @@ IMAGES_DIR = PROJECT_DIR / "images"
 DATA_FILE = PROJECT_DIR / "UserBehavior.csv"
 # ─────────────────────────────────────────────────────────
 
-# 画图用的中文字体（Windows 自带）
+# 绘图使用的中文字体（Windows 自带）
 FONT_CANDIDATES = ["Microsoft YaHei", "SimHei", "Arial Unicode MS"]
 
 
@@ -52,19 +52,19 @@ def build_engine() -> Engine:
 
 
 def query(sql: str, engine: Engine | None = None) -> pd.DataFrame:
-    """跑一条 SELECT，返回 DataFrame。"""
+    """执行一条 SELECT，返回 DataFrame。"""
     engine = engine or build_engine()
     return pd.read_sql(text(sql), engine)
 
 
 def scalar(sql: str, engine: Engine | None = None):
-    """只要一个值（COUNT 之类）。"""
+    """仅返回单个值（例如 COUNT 结果）。"""
     df = query(sql, engine)
     return df.iloc[0, 0] if len(df) else None
 
 
 def read_sql_file(path: str | Path) -> str:
-    """读 sql/ 下的脚本原文。"""
+    """读取 sql/ 目录下的脚本原文。"""
     p = Path(path)
     if not p.is_absolute():
         p = SQL_DIR / p
@@ -72,7 +72,7 @@ def read_sql_file(path: str | Path) -> str:
 
 
 def load_result(filename: str) -> pd.DataFrame:
-    """读 run_sql.py 导出的结果 CSV（results/<脚本名>__<第几条语句>.csv）。"""
+    """读取 run_sql.py 导出的结果 CSV（results/<脚本名>__<第几条语句>.csv）。"""
     p = RESULTS_DIR / filename
     if not p.exists():
         raise FileNotFoundError(
@@ -85,10 +85,10 @@ def load_result(filename: str) -> pd.DataFrame:
 
 
 def read_result(script: str, statement: int) -> pd.DataFrame:
-    """按「脚本名 + 第几条语句」读结果。
+    """按「脚本名 + 第几条语句」读取结果。
 
     例：read_result('05_funnel', 2) -> results/05_funnel__02.csv
-    编号和 sql/ 里的语句顺序一一对应（注释行不算语句）。
+    编号与 sql/ 中的语句顺序一一对应（注释行不计入语句）。
     """
     return load_result(f"{script}__{statement:02d}.csv")
 
@@ -99,10 +99,10 @@ def ensure_dirs() -> None:
 
 
 def setup_matplotlib() -> None:
-    """统一字体和保存参数：图里中文不会变方块，存出来的图也不是糊的。"""
+    """统一字体与保存参数：确保图中中文正常显示、导出图片清晰。"""
     import matplotlib
 
-    matplotlib.use("Agg")          # 不弹窗，直接存文件
+    matplotlib.use("Agg")          # 不弹出窗口，直接写入文件
     matplotlib.rcParams["font.sans-serif"] = FONT_CANDIDATES
     matplotlib.rcParams["axes.unicode_minus"] = False
     matplotlib.rcParams["figure.dpi"] = 120
@@ -111,7 +111,7 @@ def setup_matplotlib() -> None:
 
 
 def main() -> int:
-    """冒烟测试：连上库，看一眼数据在不在。"""
+    """冒烟测试：连接数据库并确认数据是否存在。"""
     engine = build_engine()
     with engine.connect() as conn:
         conn.execute(text("SELECT 1"))

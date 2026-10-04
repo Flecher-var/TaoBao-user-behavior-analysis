@@ -1,19 +1,19 @@
 """
 扫描 UserBehavior.csv 里 ts 列的异常值。
 
-背景：导入时报
+背景：导入时报告
     DataError: (1264, "Out of range value for column 'ts' at row 6225")
-说明某些行的 ts 放不进 INT UNSIGNED（合法范围 0 ~ 4,294,967,295）。
+说明某些行的 ts 无法放入 INT UNSIGNED（合法范围 0 ~ 4,294,967,295）。
 
 用法：
     python scan_ts_anomalies.py
 
-把下面的 CSV_PATH 改成你的实际路径再跑。
+运行前请将下方的 CSV_PATH 修改为本机实际路径。
 """
 
 import pandas as pd
 
-# ── 改这里 ────────────────────────────────────────────────
+# ── 配置区 ────────────────────────────────────────────────
 CSV_PATH = r"E:/PycharmProjects/TaoBao-user-behavior-analysis/UserBehavior.csv"
 # ─────────────────────────────────────────────────────────
 

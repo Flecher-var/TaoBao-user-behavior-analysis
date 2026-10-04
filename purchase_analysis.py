@@ -1,5 +1,5 @@
 """
-付费行为分析：复购、加购收藏比、类目偏好、活跃时段（SQL 算，本脚本只读结果画图）。
+付费行为分析：复购、加购收藏比、类目偏好、活跃时段（由 SQL 计算，本脚本仅读取结果并绘图）。
 
 数据来源：run_sql.py 导出的 CSV
     results/10_repurchase__01.csv   复购率
@@ -8,14 +8,14 @@
     results/10_repurchase__04.csv   购买量 Top10 类目
     results/10_repurchase__05.csv   高价值用户的下单时段
     results/09_hourly__01.csv       24 小时活跃分布
-执行顺序：python run_sql.py  然后  python purchase_analysis.py
+执行顺序：python run_sql.py  随后  python purchase_analysis.py
 
-对应原版 purchase_analysis.py 的几件事：
+对应原版 purchase_analysis.py 的几项：
     转化比 PV/Buy  -> 改用用户级漏斗，见 funnel.py（事件比没有业务含义）
     品类偏好       -> sql/10 ④
     复购率         -> sql/10 ①
     加购/收藏比    -> sql/10 ②
-另外补上原 README 提到过、但代码里没有实现的两件事：小时分布、高价值用户下单时段。
+另外补充了 README 中提及但代码未实现的两项：小时分布、高价值用户下单时段。
 
 输出：images/hourly_activity.png、images/top_categories.png
 """
@@ -48,7 +48,7 @@ def plot_hourly(df) -> None:
 
 def plot_top_categories(df) -> None:
     fig, ax = plt.subplots(figsize=(8, 4.5))
-    data = df.iloc[::-1]                      # 从下往上画，最大的类目在最上面
+    data = df.iloc[::-1]                      # 自下而上绘制，使最大类目位于顶部
     labels = data["类目ID"].astype(str)
     ax.barh(labels, data["购买次数"], color="#55A868")
     for i, v in enumerate(data["购买次数"]):

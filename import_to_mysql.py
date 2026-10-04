@@ -1,21 +1,21 @@
 """
-小批量导入工具（只导一天 / 只导 N 行）。全量导入请用 SQL。
+小批量导入工具（仅导一天 / 仅导 N 行）。全量导入请使用 SQL。
 
-本项目「SQL 化」之后，正式的导入方式是 sql/02_load_data.sql 里的
-LOAD DATA LOCAL INFILE —— 1 亿行十几分钟，一条命令：
+本项目「SQL 化」之后，正式的导入方式为 sql/02_load_data.sql 中的
+LOAD DATA LOCAL INFILE —— 1 亿行约十几分钟，一条命令即可完成：
 
     python run_sql.py --all        # 建表 + LOAD DATA + 建索引 + 跑分析
-    python run_sql.py --load       # 只做导入这一段
+    python run_sql.py --load       # 仅执行导入环节
 
-这个脚本保留下来，是因为它有 LOAD DATA 做不到的两件事：
-  - 只导入某一天（--date），几分钟就能把整条链路（导入 -> SQL 分析 -> 画图）跑通
-  - 只导入 N 行（--limit），调试 SQL 语法时不用等全量
-代价是慢：pandas 分块 + 批量 INSERT，1 亿行要跑几个小时。
+保留本脚本的原因：它具备 LOAD DATA 无法实现的两项能力：
+  - 仅导入某一天（--date），几分钟即可跑通整条链路（导入 -> SQL 分析 -> 绘图）
+  - 仅导入 N 行（--limit），调试 SQL 语法时无需等待全量导入
+代价是速度较慢：pandas 分块 + 批量 INSERT，1 亿行需要数小时。
 
 用法：
-    python import_to_mysql.py --date 2017-11-25     # 只导一天
-    python import_to_mysql.py --limit 1000000       # 只导 100 万行
-    python import_to_mysql.py                       # 全量（不推荐，请用 LOAD DATA）
+    python import_to_mysql.py --date 2017-11-25     # 仅导入一天
+    python import_to_mysql.py --limit 1000000       # 仅导入 100 万行
+    python import_to_mysql.py                       # 全量（不推荐，请使用 LOAD DATA）
 """
 
 import argparse
@@ -35,15 +35,15 @@ except ImportError:
     sys.exit(1)
 
 
-# ── 改这里 ────────────────────────────────────────────────
+# ── 配置区 ────────────────────────────────────────────────
 DB_CONFIG = {
     "host": "127.0.0.1",
     "port": 3306,
     "user": "root",
-    "password": "123456",          # <- 改成你的密码
-    "database": "taobao",           # <- 先在 MySQL 里执行 CREATE DATABASE taobao;
+    "password": "123456",          # <- 请修改为实际密码
+    "database": "taobao",           # <- 请先在 MySQL 中执行 CREATE DATABASE taobao;
 }
-CSV_PATH = r"E:/PycharmProjects/TaoBao-user-behavior-analysis/UserBehavior.csv"   # <- 改成你的实际路径
+CSV_PATH = r"E:/PycharmProjects/TaoBao-user-behavior-analysis/UserBehavior.csv"   # <- 请修改为本机实际路径
 # ─────────────────────────────────────────────────────────
 
 PLACEHOLDER_PASSWORD = "你的密码"
@@ -70,10 +70,10 @@ def build_engine():
 
 
 def preflight():
-    """在开始导入之前把最常见的问题一次性检查掉。"""
+    """在开始导入前，一次性检查最常见的问题。"""
     ok = True
 
-    # 1) 配置是否还是占位符
+    # 1) 配置是否仍为占位符
     if DB_CONFIG["password"] == PLACEHOLDER_PASSWORD:
         print("[X] 还没改密码：请把脚本里 DB_CONFIG 的 password 改成你的 MySQL root 密码")
         ok = False
@@ -84,7 +84,7 @@ def preflight():
         )
         ok = False
 
-    # 2) 数据文件是否真的存在
+    # 2) 数据文件是否确实存在
     if not Path(CSV_PATH).exists():
         print(f"[X] 找不到数据文件：{CSV_PATH}")
         print("    请确认已从天池下载并解压 UserBehavior.csv，且路径填写正确")
@@ -96,7 +96,7 @@ def preflight():
     if not ok:
         return None
 
-    # 3) 能不能连上数据库、表建好了没有
+    # 3) 数据库是否可连接、目标表是否已创建
     engine = build_engine()
     try:
         with engine.connect() as conn:
@@ -187,7 +187,7 @@ def main() -> int:
             if_exists="append",
             index=False,
             chunksize=10_000,
-            method="multi",          # 批量 INSERT，比默认快好几倍
+            method="multi",          # 批量 INSERT，比默认方式快数倍
         )
 
         total_kept += len(chunk)
