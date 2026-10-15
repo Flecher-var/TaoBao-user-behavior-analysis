@@ -182,8 +182,8 @@ python purchase_analysis.py # images/hourly_activity.png、images/top_categories
 
 ```powershell
 # 用完整路径指定解释器，避免用到系统里别的 Python
-$py = "E:\anaconda3\envs\DETR\python.exe"
-$p  = "E:\PycharmProjects\TaoBao-user-behavior-analysis"
+$py = ".\.conda\python.exe"
+$p  = ".\TaoBao-user-behavior-analysis"
 
 & $py "$p\run_sql.py" --all     # 首次：建表 + 灌数据 + 建索引 + 全部分析
 & $py "$p\run_sql.py"           # 之后：只跑分析，不重建表
